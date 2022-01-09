@@ -1,7 +1,7 @@
 [package]
 authors = ["Rasmus Kildevæld <rasmuskildevaeld@gmail.com>"]
 edition = "2021"
-name = "encoding"
+name = "toback"
 version = "0.0.1"
 
 [dependencies]
