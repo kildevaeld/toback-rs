@@ -1,0 +1,28 @@
+[package]
+authors = ["Rasmus Kildevæld <rasmuskildevaeld@gmail.com>"]
+edition = "2021"
+name = "encoding"
+version = "0.0.1"
+
+[dependencies]
+serde = {version = "1", default-features = false}
+thiserror = "1"
+
+ron = {version = "0.7", optional = true}
+serde_gura = {version = "0.1.4", optional = true}
+serde_json = {version = "1", optional = true}
+serde_yaml = {version = "0.8", optional = true}
+toml = {version = "0.5", optional = true}
+
+[features]
+default = []
+full = [
+  "json",
+  "gura",
+  "yaml",
+  "ron",
+  "toml",
+]
+gura = ["serde_gura"]
+json = ["serde_json"]
+yaml = ["serde_yaml"]
