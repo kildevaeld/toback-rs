@@ -13,11 +13,30 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for JsonEncoder {
     fn extensions(&self) -> &[&str] {
         &["json"]
     }
-    fn load(&self, content: Vec<u8>) -> Result<T, Error> {
+    fn load_reader(&self, reader: &mut dyn std::io::Read) -> Result<T, Error> {
+        Ok(serde_json::from_reader(reader)?)
+    }
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
         Ok(serde_json::from_slice::<T>(&content).map_err(Error::Json)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
+        Ok(serde_json::to_vec(content).map_err(Error::Json)?)
+    }
+
+    fn save_pretty(&self, content: &T) -> Result<Vec<u8>, Error> {
         Ok(serde_json::to_vec_pretty(content).map_err(Error::Json)?)
+    }
+
+    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+        Ok(serde_json::to_writer(writer, content)?)
+    }
+
+    fn save_writer_pretty(
+        &self,
+        writer: &mut dyn std::io::Write,
+        content: &T,
+    ) -> Result<(), Error> {
+        Ok(serde_json::to_writer_pretty(writer, content)?)
     }
 }
 
@@ -30,11 +49,28 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for YamlEncoder {
     fn extensions(&self) -> &[&str] {
         &["yaml", "yml"]
     }
-    fn load(&self, content: Vec<u8>) -> Result<T, Error> {
+
+    fn load_reader(&self, reader: &mut dyn std::io::Read) -> Result<T, Error> {
+        Ok(serde_yaml::from_reader(reader)?)
+    }
+
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
         Ok(serde_yaml::from_slice::<T>(&content).map_err(Error::Yaml)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
         Ok(serde_yaml::to_vec(content).map_err(Error::Yaml)?)
+    }
+
+    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+        Ok(serde_yaml::to_writer(writer, content)?)
+    }
+
+    fn save_writer_pretty(
+        &self,
+        writer: &mut dyn std::io::Write,
+        content: &T,
+    ) -> Result<(), Error> {
+        Ok(serde_yaml::to_writer(writer, content)?)
     }
 }
 
@@ -47,13 +83,20 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for TomlEncoder {
     fn extensions(&self) -> &[&str] {
         &["toml"]
     }
-    fn load(&self, content: Vec<u8>) -> Result<T, Error> {
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
         Ok(toml::from_slice::<T>(&content)
             .map_err(crate::TomlError::Deserialize)
             .map_err(Error::Toml)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
         Ok(toml::to_vec(content)
+            .map_err(crate::TomlError::Serialize)
+            .map_err(Error::Toml)?)
+    }
+
+    fn save_pretty(&self, content: &T) -> Result<Vec<u8>, Error> {
+        Ok(toml::ser::to_string_pretty(content)
+            .map(Vec::from)
             .map_err(crate::TomlError::Serialize)
             .map_err(Error::Toml)?)
     }
@@ -68,13 +111,40 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for RonEncoder {
     fn extensions(&self) -> &[&str] {
         &["ron"]
     }
-    fn load(&self, content: Vec<u8>) -> Result<T, Error> {
-        let content = String::from_utf8(content).map_err(Error::Utf8)?;
-
-        Ok(ron::from_str::<T>(&content).map_err(Error::Ron)?)
+    fn load_reader(&self, reader: &mut dyn std::io::Read) -> Result<T, Error> {
+        Ok(ron::de::from_reader(reader)?)
+    }
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
+        Ok(ron::de::from_bytes::<T>(&content).map_err(Error::Ron)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
-        Ok(ron::to_string(content).map(Vec::from).map_err(Error::Ron)?)
+        Ok(ron::ser::to_string(content)
+            .map(Vec::from)
+            .map_err(Error::Ron)?)
+    }
+
+    fn save_pretty(&self, content: &T) -> Result<Vec<u8>, Error> {
+        Ok(
+            ron::ser::to_string_pretty(content, ron::ser::PrettyConfig::default())
+                .map(Vec::from)
+                .map_err(Error::Ron)?,
+        )
+    }
+
+    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+        Ok(ron::ser::to_writer(writer, content)?)
+    }
+
+    fn save_writer_pretty(
+        &self,
+        writer: &mut dyn std::io::Write,
+        content: &T,
+    ) -> Result<(), Error> {
+        Ok(ron::ser::to_writer_pretty(
+            writer,
+            content,
+            ron::ser::PrettyConfig::default(),
+        )?)
     }
 }
 
@@ -85,10 +155,10 @@ pub struct GuraEncoder;
 #[cfg(feature = "gura")]
 impl<T: Serialize + DeserializeOwned> Encoder<T> for GuraEncoder {
     fn extensions(&self) -> &[&str] {
-        &["ura"]
+        &["ura", "gura"]
     }
-    fn load(&self, content: Vec<u8>) -> Result<T, Error> {
-        let content = String::from_utf8(content).map_err(Error::Utf8)?;
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
+        let content = std::str::from_utf8(content).map_err(Error::Utf8)?;
         Ok(serde_gura::from_str::<T>(&content).map_err(Error::Gura)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {

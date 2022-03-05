@@ -6,26 +6,34 @@ pub struct TobackBuilder<T: Serialize + DeserializeOwned> {
     encoders: Vec<Box<dyn Encoder<T>>>,
 }
 
-impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
-    pub fn new() -> TobackBuilder<T> {
-        #[allow(unused)]
-        let mut encoders: Vec<Box<dyn Encoder<T>>> = Vec::new();
+impl<T: Serialize + DeserializeOwned> Default for TobackBuilder<T> {
+    fn default() -> Self {
+        #[allow(unused_mut)]
+        let mut instance = Self::new();
 
         #[cfg(feature = "json")]
-        encoders.push(Box::new(encoders::JsonEncoder));
+        instance.encoders.push(Box::new(encoders::JsonEncoder));
         #[cfg(feature = "yaml")]
-        encoders.push(Box::new(encoders::YamlEncoder));
+        instance.encoders.push(Box::new(encoders::YamlEncoder));
         #[cfg(feature = "toml")]
-        encoders.push(Box::new(encoders::TomlEncoder));
+        instance.encoders.push(Box::new(encoders::TomlEncoder));
         #[cfg(feature = "ron")]
-        encoders.push(Box::new(encoders::RonEncoder));
+        instance.encoders.push(Box::new(encoders::RonEncoder));
         #[cfg(feature = "gura")]
-        encoders.push(Box::new(encoders::GuraEncoder));
+        instance.encoders.push(Box::new(encoders::GuraEncoder));
 
-        TobackBuilder { encoders }
+        instance
+    }
+}
+
+impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
+    pub fn new() -> TobackBuilder<T> {
+        TobackBuilder {
+            encoders: Vec::default(),
+        }
     }
 
-    pub fn with_encoder<E: Encoder<T> + 'static>(mut self, encoder: E) -> Self {
+    pub fn encoder<E: Encoder<T> + 'static>(mut self, encoder: E) -> Self {
         self.encoders.push(Box::new(encoder));
         self
     }
@@ -63,7 +71,18 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
         &self.exts
     }
 
-    pub fn load(&self, content: Vec<u8>, ext: &str) -> Result<T, Error> {
+    pub fn encoder(&self, ext: &str) -> Result<&dyn Encoder<T>, Error> {
+        match self
+            .encoders
+            .iter()
+            .find(|loader| loader.extensions().contains(&ext))
+        {
+            Some(s) => Ok(s.as_ref()),
+            None => Err(Error::EncoderNotFound(ext.to_string())),
+        }
+    }
+
+    pub fn load(&self, content: &[u8], ext: &str) -> Result<T, Error> {
         let encoder = match self
             .encoders
             .iter()
@@ -87,5 +106,18 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
         };
 
         encoder.save(content)
+    }
+
+    pub fn save_pretty(&self, content: &T, ext: &str) -> Result<Vec<u8>, Error> {
+        let encoder = match self
+            .encoders
+            .iter()
+            .find(|loader| loader.extensions().contains(&ext))
+        {
+            Some(s) => s,
+            None => return Err(Error::EncoderNotFound(ext.to_string())),
+        };
+
+        encoder.save_pretty(content)
     }
 }

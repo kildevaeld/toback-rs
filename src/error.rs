@@ -1,4 +1,5 @@
-use std::string::FromUtf8Error;
+use std::io::Error as IOError;
+use std::str::Utf8Error;
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
@@ -20,10 +21,12 @@ pub enum Error {
     #[error("gura")]
     Gura(#[from] serde_gura::Error),
     #[error("utf8")]
-    Utf8(#[from] FromUtf8Error),
+    Utf8(Utf8Error),
     //
     #[error("encoder not found")]
     EncoderNotFound(String),
+    #[error("io error {0}")]
+    Io(#[from] IOError),
 }
 
 #[cfg(feature = "toml")]
