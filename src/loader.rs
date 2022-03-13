@@ -1,5 +1,6 @@
-#[allow(unused)]
-use crate::{encoders, Encoder, Error};
+use std::path::Path;
+
+use crate::{Encoder, Error};
 use serde::{de::DeserializeOwned, Serialize};
 
 pub struct TobackBuilder<T: Serialize + DeserializeOwned> {
@@ -12,15 +13,25 @@ impl<T: Serialize + DeserializeOwned> Default for TobackBuilder<T> {
         let mut instance = Self::new();
 
         #[cfg(feature = "json")]
-        instance.encoders.push(Box::new(encoders::JsonEncoder));
+        instance
+            .encoders
+            .push(Box::new(crate::encoders::JsonEncoder));
         #[cfg(feature = "yaml")]
-        instance.encoders.push(Box::new(encoders::YamlEncoder));
+        instance
+            .encoders
+            .push(Box::new(crate::encoders::YamlEncoder));
         #[cfg(feature = "toml")]
-        instance.encoders.push(Box::new(encoders::TomlEncoder));
+        instance
+            .encoders
+            .push(Box::new(crate::encoders::TomlEncoder));
         #[cfg(feature = "ron")]
-        instance.encoders.push(Box::new(encoders::RonEncoder));
+        instance
+            .encoders
+            .push(Box::new(crate::encoders::RonEncoder));
         #[cfg(feature = "gura")]
-        instance.encoders.push(Box::new(encoders::GuraEncoder));
+        instance
+            .encoders
+            .push(Box::new(crate::encoders::GuraEncoder));
 
         instance
     }
@@ -80,6 +91,21 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
             Some(s) => Ok(s.as_ref()),
             None => Err(Error::EncoderNotFound(ext.to_string())),
         }
+    }
+
+    pub fn encoder_from_path(&self, path: impl AsRef<Path>) -> Option<&dyn Encoder<T>> {
+        let path = path.as_ref();
+        let ext = match path.extension() {
+            Some(ext) => ext,
+            None => return None,
+        };
+
+        let ext = match ext.to_str() {
+            Some(ext) => ext,
+            None => return None,
+        };
+
+        self.encoder(ext).ok()
     }
 
     pub fn load(&self, content: &[u8], ext: &str) -> Result<T, Error> {

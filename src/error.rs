@@ -22,7 +22,6 @@ pub enum Error {
     Gura(#[from] serde_gura::Error),
     #[error("utf8")]
     Utf8(Utf8Error),
-    //
     #[error("encoder not found")]
     EncoderNotFound(String),
     #[error("io error {0}")]
