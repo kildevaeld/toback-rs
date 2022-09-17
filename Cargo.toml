@@ -16,7 +16,7 @@ serde_yaml = {version = "0.9", optional = true}
 toml = {version = "0.5", optional = true}
 
 [features]
-default = ["lua"]
+default = []
 full = [
   "json",
   "gura",
