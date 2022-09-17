@@ -1,5 +1,5 @@
 mod encoder;
-mod encoders;
+pub mod encoders;
 mod error;
 mod loader;
 

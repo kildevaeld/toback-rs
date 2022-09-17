@@ -5,6 +5,9 @@ use thiserror::Error as ThisError;
 #[derive(ThisError, Debug)]
 #[non_exhaustive]
 pub enum Error {
+    #[cfg(feature = "lua")]
+    #[error("lua error: {0}")]
+    Lua(#[from] LuaError),
     #[cfg(feature = "json")]
     #[error("json")]
     Json(#[from] serde_json::Error),
@@ -35,4 +38,13 @@ pub enum TomlError {
     Serialize(toml::ser::Error),
     #[error("deserialize")]
     Deserialize(toml::de::Error),
+}
+
+#[cfg(feature = "lua")]
+#[derive(ThisError, Debug)]
+pub enum LuaError {
+    #[error("vm error {0}")]
+    Lua(#[from] mlua::Error),
+    #[error("cannot save")]
+    CannotSave,
 }

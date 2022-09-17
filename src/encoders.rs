@@ -167,3 +167,46 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for GuraEncoder {
             .map_err(Error::Gura)?)
     }
 }
+
+#[cfg(feature = "lua")]
+pub struct LuaEncoder(mlua::Lua);
+
+#[cfg(feature = "lua")]
+impl Default for LuaEncoder {
+    fn default() -> Self {
+        LuaEncoder(mlua::Lua::new())
+    }
+}
+
+#[cfg(feature = "lua")]
+impl LuaEncoder {
+    pub fn new(lua: mlua::Lua) -> LuaEncoder {
+        LuaEncoder(lua)
+    }
+}
+
+#[cfg(feature = "lua")]
+impl<T: Serialize + DeserializeOwned> Encoder<T> for LuaEncoder {
+    fn extensions(&self) -> &[&str] {
+        &["lua"]
+    }
+
+    fn load(&self, content: &[u8]) -> Result<T, Error> {
+        use mlua::LuaSerdeExt;
+
+        let val = self
+            .0
+            .load(content)
+            .eval::<mlua::Value>()
+            .map_err(crate::error::LuaError::Lua)?;
+        let ret = self
+            .0
+            .from_value(val)
+            .map_err(crate::error::LuaError::Lua)?;
+        Ok(ret)
+    }
+
+    fn save(&self, _content: &T) -> Result<Vec<u8>, Error> {
+        Err(crate::LuaError::CannotSave.into())
+    }
+}

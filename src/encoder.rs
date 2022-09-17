@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use super::error::Error;
 use serde::{de::DeserializeOwned, Serialize};
 
-pub trait Encoder<T: Serialize + DeserializeOwned>: Send + Sync {
+pub trait Encoder<T: Serialize + DeserializeOwned> {
     fn extensions(&self) -> &[&str];
     fn load_reader(&self, reader: &mut dyn Read) -> Result<T, Error> {
         let mut buffer = Vec::default();
