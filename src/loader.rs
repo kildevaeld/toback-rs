@@ -3,8 +3,14 @@ use std::path::Path;
 use crate::{Encoder, Error};
 use serde::{de::DeserializeOwned, Serialize};
 
+#[cfg(feature = "send")]
+type EncoderBox<T> = Box<dyn Encoder<T> + Send>;
+
+#[cfg(not(feature = "send"))]
+type EncoderBox<T> = Box<dyn Encoder<T>>;
+
 pub struct TobackBuilder<T: Serialize + DeserializeOwned> {
-    encoders: Vec<Box<dyn Encoder<T>>>,
+    encoders: Vec<EncoderBox<T>>,
 }
 
 impl<T: Serialize + DeserializeOwned> Default for TobackBuilder<T> {
@@ -44,6 +50,13 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
         }
     }
 
+    #[cfg(feature = "send")]
+    pub fn encoder<E: Encoder<T> + 'static + Send>(mut self, encoder: E) -> Self {
+        self.encoders.push(Box::new(encoder));
+        self
+    }
+
+    #[cfg(not(feature = "send"))]
     pub fn encoder<E: Encoder<T> + 'static>(mut self, encoder: E) -> Self {
         self.encoders.push(Box::new(encoder));
         self
@@ -65,7 +78,7 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
 }
 
 pub struct Toback<T: Serialize + DeserializeOwned> {
-    encoders: Vec<Box<dyn Encoder<T>>>,
+    encoders: Vec<EncoderBox<T>>,
     exts: Vec<String>,
 }
 
@@ -145,5 +158,17 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
         };
 
         encoder.save_pretty(content)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let builder = TobackBuilder::<()>::default();
+
+        builder.encoder(crate::encoders::LuaEncoder::default());
     }
 }

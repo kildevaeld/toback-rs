@@ -28,3 +28,5 @@ gura = ["serde_gura"]
 json = ["serde_json"]
 lua = ["mlua"]
 yaml = ["serde_yaml"]
+
+send = ["mlua?/send"]
