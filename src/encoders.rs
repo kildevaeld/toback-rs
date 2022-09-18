@@ -58,7 +58,9 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for YamlEncoder {
         Ok(serde_yaml::from_slice::<T>(&content).map_err(Error::Yaml)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
-        Ok(serde_yaml::to_vec(content).map_err(Error::Yaml)?)
+        Ok(serde_yaml::to_string(content)
+            .map(|out| out.into_bytes())
+            .map_err(Error::Yaml)?)
     }
 
     fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
@@ -112,10 +114,12 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for RonEncoder {
         &["ron"]
     }
     fn load_reader(&self, reader: &mut dyn std::io::Read) -> Result<T, Error> {
-        Ok(ron::de::from_reader(reader)?)
+        Ok(ron::de::from_reader(reader).map_err(|err| err.code)?)
     }
     fn load(&self, content: &[u8]) -> Result<T, Error> {
-        Ok(ron::de::from_bytes::<T>(&content).map_err(Error::Ron)?)
+        Ok(ron::de::from_bytes::<T>(&content)
+            .map_err(|err| err.code)
+            .map_err(Error::Ron)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
         Ok(ron::ser::to_string(content)
