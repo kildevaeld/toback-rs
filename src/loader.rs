@@ -62,6 +62,18 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
         self
     }
 
+    #[cfg(feature = "send")]
+    pub fn add_encoder<E: Encoder<T> + 'static + Send>(&mut self, encoder: E) -> &mut Self {
+        self.encoders.push(Box::new(encoder));
+        self
+    }
+
+    #[cfg(not(feature = "send"))]
+    pub fn add_encoder<E: Encoder<T> + 'static>(&mut self, encoder: E) -> &mut Self {
+        self.encoders.push(Box::new(encoder));
+        self
+    }
+
     pub fn build(self) -> Toback<T> {
         let exts = self
             .encoders
