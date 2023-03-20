@@ -78,8 +78,7 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
         let exts = self
             .encoders
             .iter()
-            .map(|m| m.extensions())
-            .flatten()
+            .flat_map(|m| m.extensions())
             .map(|m| m.to_string())
             .collect();
         Toback {
