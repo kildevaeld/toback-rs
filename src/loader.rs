@@ -4,7 +4,7 @@ use crate::{Encoder, Error};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(feature = "send")]
-type EncoderBox<T> = Box<dyn Encoder<T> + Send>;
+type EncoderBox<T> = Box<dyn Encoder<T> + Send + Sync>;
 
 #[cfg(not(feature = "send"))]
 type EncoderBox<T> = Box<dyn Encoder<T>>;
@@ -51,7 +51,7 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
     }
 
     #[cfg(feature = "send")]
-    pub fn encoder<E: Encoder<T> + 'static + Send>(mut self, encoder: E) -> Self {
+    pub fn encoder<E: Encoder<T> + 'static + Send + Sync>(mut self, encoder: E) -> Self {
         self.encoders.push(Box::new(encoder));
         self
     }
@@ -63,7 +63,7 @@ impl<T: Serialize + DeserializeOwned> TobackBuilder<T> {
     }
 
     #[cfg(feature = "send")]
-    pub fn add_encoder<E: Encoder<T> + 'static + Send>(&mut self, encoder: E) -> &mut Self {
+    pub fn add_encoder<E: Encoder<T> + 'static + Send + Sync>(&mut self, encoder: E) -> &mut Self {
         self.encoders.push(Box::new(encoder));
         self
     }
@@ -176,6 +176,7 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
 mod test {
     use super::*;
 
+    #[cfg(feature = "lua")]
     #[test]
     fn test() {
         let builder = TobackBuilder::<()>::default();
