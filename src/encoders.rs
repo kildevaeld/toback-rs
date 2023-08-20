@@ -86,12 +86,14 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for TomlEncoder {
         &["toml"]
     }
     fn load(&self, content: &[u8]) -> Result<T, Error> {
-        Ok(toml::from_slice::<T>(&content)
+        let content = std::str::from_utf8(content).map_err(Error::Utf8)?;
+        Ok(toml::from_str::<T>(&content)
             .map_err(crate::TomlError::Deserialize)
             .map_err(Error::Toml)?)
     }
     fn save(&self, content: &T) -> Result<Vec<u8>, Error> {
-        Ok(toml::to_vec(content)
+        Ok(toml::to_string(content)
+            .map(|m| m.into_bytes())
             .map_err(crate::TomlError::Serialize)
             .map_err(Error::Toml)?)
     }
