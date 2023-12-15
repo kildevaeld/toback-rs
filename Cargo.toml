@@ -6,21 +6,27 @@ version = "0.0.1"
 
 [dependencies]
 serde = { version = "1", default-features = false }
-thiserror = "1"
 
 mlua = { version = "0.9", optional = true, features = ["serialize", "serde"] }
 ron = { version = "0.8", optional = true }
 serde_gura = { version = "0.1.4", optional = true }
-serde_json = { version = "1", optional = true }
+serde_json = { version = "1", features = [
+    "alloc",
+], default-features = false, optional = true }
 serde_yaml = { version = "0.9", optional = true }
-toml = { version = "0.7", optional = true }
+toml = { version = "0.8", optional = true }
 
 [features]
-default = []
+default = ["std"]
+
+std = ["serde_json/std", "serde/std"]
+
+
 full = ["json", "gura", "yaml", "ron", "toml"]
-gura = ["serde_gura"]
+gura = ["serde_gura", "std"]
 json = ["serde_json"]
-lua = ["mlua"]
-yaml = ["serde_yaml"]
+ron = ["dep:ron", "std"]
+lua = ["mlua", "std"]
+yaml = ["serde_yaml", "std"]
 
 send = ["mlua?/send"]

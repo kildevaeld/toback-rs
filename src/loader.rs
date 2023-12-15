@@ -1,6 +1,11 @@
-use std::path::Path;
+// use std::path::Path;
 
 use crate::{Encoder, Error};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    vec::Vec,
+};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(feature = "send")]
@@ -117,7 +122,8 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
         }
     }
 
-    pub fn encoder_from_path(&self, path: impl AsRef<Path>) -> Option<&dyn Encoder<T>> {
+    #[cfg(feature = "std")]
+    pub fn encoder_from_path(&self, path: impl AsRef<std::path::Path>) -> Option<&dyn Encoder<T>> {
         let path = path.as_ref();
         let ext = match path.extension() {
             Some(ext) => ext,
@@ -174,6 +180,7 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
 
 #[cfg(test)]
 mod test {
+    #[allow(unused)]
     use super::*;
 
     #[cfg(feature = "lua")]
