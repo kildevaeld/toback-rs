@@ -2,7 +2,7 @@
 authors = ["Rasmus Kildevæld <rasmuskildevaeld@gmail.com>"]
 edition = "2021"
 name = "toback"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies]
 serde = { version = "1", default-features = false }
