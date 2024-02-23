@@ -99,10 +99,12 @@ pub struct Toback<T: Serialize + DeserializeOwned> {
 }
 
 impl<T: Serialize + DeserializeOwned> Toback<T> {
+    /// Creates a new with all features enabled formats
     pub fn new() -> Toback<T> {
-        TobackBuilder::new().build()
+        TobackBuilder::default().build()
     }
 
+    /// Creates a new empty builder
     pub fn build() -> TobackBuilder<T> {
         TobackBuilder::new()
     }
@@ -139,42 +141,46 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
     }
 
     pub fn load(&self, content: &[u8], ext: &str) -> Result<T, Error> {
-        let encoder = match self
-            .encoders
-            .iter()
-            .find(|loader| loader.extensions().contains(&ext))
-        {
-            Some(s) => s,
-            None => return Err(Error::EncoderNotFound(ext.to_string())),
-        };
-
+        let encoder = self.encoder(ext)?;
         encoder.load(content)
     }
 
-    pub fn save(&self, content: &T, ext: &str) -> Result<Vec<u8>, Error> {
-        let encoder = match self
-            .encoders
-            .iter()
-            .find(|loader| loader.extensions().contains(&ext))
-        {
-            Some(s) => s,
-            None => return Err(Error::EncoderNotFound(ext.to_string())),
-        };
+    #[cfg(feature = "std")]
+    pub fn load_reader<R: std::io::Read>(&self, reader: &mut R, ext: &str) -> Result<T, Error> {
+        let encoder = self.encoder(ext)?;
+        encoder.load_reader(reader)
+    }
 
+    pub fn save(&self, content: &T, ext: &str) -> Result<Vec<u8>, Error> {
+        let encoder = self.encoder(ext)?;
         encoder.save(content)
     }
 
     pub fn save_pretty(&self, content: &T, ext: &str) -> Result<Vec<u8>, Error> {
-        let encoder = match self
-            .encoders
-            .iter()
-            .find(|loader| loader.extensions().contains(&ext))
-        {
-            Some(s) => s,
-            None => return Err(Error::EncoderNotFound(ext.to_string())),
-        };
-
+        let encoder = self.encoder(ext)?;
         encoder.save_pretty(content)
+    }
+
+    #[cfg(feature = "std")]
+    pub fn save_writer<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+        content: &T,
+        ext: &str,
+    ) -> Result<(), Error> {
+        let encoder = self.encoder(ext)?;
+        encoder.save_writer(writer, content)
+    }
+
+    #[cfg(feature = "std")]
+    pub fn save_writer_pretty<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+        content: &T,
+        ext: &str,
+    ) -> Result<(), Error> {
+        let encoder = self.encoder(ext)?;
+        encoder.save_writer_pretty(writer, content)
     }
 }
 

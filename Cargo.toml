@@ -19,7 +19,7 @@ toml = { version = "0.8", optional = true }
 [features]
 default = ["std"]
 
-std = ["serde_json/std", "serde/std"]
+std = ["serde_json?/std", "serde/std"]
 
 
 full = ["json", "gura", "yaml", "ron", "toml"]
@@ -28,5 +28,6 @@ json = ["serde_json"]
 ron = ["dep:ron", "std"]
 lua = ["mlua", "std"]
 yaml = ["serde_yaml", "std"]
+toml = ["dep:toml", "std"]
 
 send = ["mlua?/send"]
