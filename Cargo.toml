@@ -1,8 +1,14 @@
 [package]
-authors = ["Rasmus Kildevæld <rasmuskildevaeld@gmail.com>"]
 edition = "2021"
 name = "toback"
 version = "0.0.2"
+
+keywords = ["parser", "lexer"]
+categories = ["parsing", "no-std"]
+authors = ["Rasmus Kildevæld <rasmuskildevaeld@gmail.com>"]
+repository = "https://github.com/kildevaeld/toback-rs"
+license = "MIT"
+
 
 [dependencies]
 serde = { version = "1", default-features = false }
