@@ -162,25 +162,25 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
     }
 
     #[cfg(feature = "std")]
-    pub fn save_writer<W: std::io::Write>(
+    pub fn write<W: std::io::Write>(
         &self,
         writer: &mut W,
         content: &T,
         ext: &str,
     ) -> Result<(), Error> {
         let encoder = self.encoder(ext)?;
-        encoder.save_writer(writer, content)
+        encoder.write(writer, content)
     }
 
     #[cfg(feature = "std")]
-    pub fn save_writer_pretty<W: std::io::Write>(
+    pub fn write_pretty<W: std::io::Write>(
         &self,
         writer: &mut W,
         content: &T,
         ext: &str,
     ) -> Result<(), Error> {
         let encoder = self.encoder(ext)?;
-        encoder.save_writer_pretty(writer, content)
+        encoder.write_pretty(writer, content)
     }
 }
 

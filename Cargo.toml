@@ -15,7 +15,7 @@ serde = { version = "1", default-features = false }
 
 mlua = { version = "0.9", optional = true, features = ["serialize", "serde"] }
 ron = { version = "0.8", optional = true }
-serde_gura = { version = "0.1.4", optional = true }
+serde_gura = { version = "0.1", optional = true }
 serde_json = { version = "1", features = [
     "alloc",
 ], default-features = false, optional = true }
@@ -26,7 +26,6 @@ toml = { version = "0.8", optional = true }
 default = ["std"]
 
 std = ["serde_json?/std", "serde/std"]
-
 
 full = ["json", "gura", "yaml", "ron", "toml"]
 gura = ["serde_gura", "std"]

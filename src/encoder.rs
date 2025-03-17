@@ -20,14 +20,14 @@ pub trait Encoder<T: Serialize + DeserializeOwned> {
     }
 
     #[cfg(feature = "std")]
-    fn save_writer(&self, writer: &mut dyn Write, content: &T) -> Result<(), Error> {
+    fn write(&self, writer: &mut dyn Write, content: &T) -> Result<(), Error> {
         let out = self.save(content)?;
         writer.write_all(&out)?;
         Ok(())
     }
 
     #[cfg(feature = "std")]
-    fn save_writer_pretty(&self, writer: &mut dyn Write, content: &T) -> Result<(), Error> {
+    fn write_pretty(&self, writer: &mut dyn Write, content: &T) -> Result<(), Error> {
         let out = self.save_pretty(content)?;
         writer.write_all(&out)?;
         Ok(())
