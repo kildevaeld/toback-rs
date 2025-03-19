@@ -31,16 +31,12 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for JsonEncoder {
     }
 
     #[cfg(feature = "std")]
-    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+    fn write(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(serde_json::to_writer(writer, content)?)
     }
 
     #[cfg(feature = "std")]
-    fn save_writer_pretty(
-        &self,
-        writer: &mut dyn std::io::Write,
-        content: &T,
-    ) -> Result<(), Error> {
+    fn write_pretty(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(serde_json::to_writer_pretty(writer, content)?)
     }
 }
@@ -70,16 +66,12 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for YamlEncoder {
     }
 
     #[cfg(feature = "std")]
-    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+    fn write(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(serde_yaml::to_writer(writer, content)?)
     }
 
     #[cfg(feature = "std")]
-    fn save_writer_pretty(
-        &self,
-        writer: &mut dyn std::io::Write,
-        content: &T,
-    ) -> Result<(), Error> {
+    fn write_pretty(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(serde_yaml::to_writer(writer, content)?)
     }
 }
@@ -147,16 +139,12 @@ impl<T: Serialize + DeserializeOwned> Encoder<T> for RonEncoder {
     }
 
     #[cfg(feature = "std")]
-    fn save_writer(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
+    fn write(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(ron::ser::to_writer(writer, content)?)
     }
 
     #[cfg(feature = "std")]
-    fn save_writer_pretty(
-        &self,
-        writer: &mut dyn std::io::Write,
-        content: &T,
-    ) -> Result<(), Error> {
+    fn write_pretty(&self, writer: &mut dyn std::io::Write, content: &T) -> Result<(), Error> {
         Ok(ron::ser::to_writer_pretty(
             writer,
             content,
