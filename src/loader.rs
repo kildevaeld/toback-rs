@@ -113,19 +113,19 @@ impl<T: Serialize + DeserializeOwned> Toback<T> {
         &self.exts
     }
 
-    pub fn encoder(&self, ext: &str) -> Result<&dyn Encoder<T>, Error> {
+    pub fn encoder(&self, ext: &str) -> Result<&EncoderBox<T>, Error> {
         match self
             .encoders
             .iter()
             .find(|loader| loader.extensions().contains(&ext))
         {
-            Some(s) => Ok(s.as_ref()),
+            Some(s) => Ok(s),
             None => Err(Error::EncoderNotFound(ext.to_string())),
         }
     }
 
     #[cfg(feature = "std")]
-    pub fn encoder_from_path(&self, path: impl AsRef<std::path::Path>) -> Option<&dyn Encoder<T>> {
+    pub fn encoder_from_path(&self, path: impl AsRef<std::path::Path>) -> Option<&EncoderBox<T>> {
         let path = path.as_ref();
         let ext = match path.extension() {
             Some(ext) => ext,
